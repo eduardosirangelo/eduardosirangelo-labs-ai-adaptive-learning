@@ -4,7 +4,7 @@
 [![Angular](https://img.shields.io/badge/Angular-18-DD0031?logo=angular)](https://angular.io)
 [![Kafka](https://img.shields.io/badge/Kafka-3.6-231F20?logo=apachekafka)](https://kafka.apache.org/)
 [![Terraform](https://img.shields.io/badge/Terraform-1.8-7B42BC?logo=terraform)](https://www.terraform.io/)
-[![CI/CD](https://github.com/eduardosirangelo/ai-adaptive-learning/actions/workflows/ci.yml/badge.svg)](https://github.com/eduardosirangelo/ai-adaptive-learning/actions)
+[![CI/CD](https://github.com/eduardosirangelo/go-angular-ai-adaptive-learning/actions/workflows/ci.yml/badge.svg)](https://github.com/eduardosirangelo/go-angular-ai-adaptive-learning/actions)
 
 > **A scalable, cloud-native platform for adaptive and personalized education, inspired by the best practices of EdTech leaders like McGraw-Hill.**
 
@@ -30,15 +30,15 @@ AI Adaptive Learning Engine is a modern, microservices-based platform designed f
                    +-------------------+
                    |   Angular MFE     |
                    +-------------------+
-                            |
-                            v
-+-------------------+   Kafka Events   +---------------------+
-|  Content Engine   |  |  Assessment Engine  |
-|   (Go Service)    |                  |   (Go Service)      |
-+-------------------+                  +---------------------+
-         |                                   |
-         v                                   v
-   PostgreSQL DB  Progress Tracker (Go + Redis)
+                             |
+                             v
++-------------------+    Kafka Events    +---------------------+
+|  Content Engine   |                    |  Assessment Engine  |
+|   (Go Service)    |                    |   (Go Service)      |
++-------------------+                    +---------------------+
+          |                                       |
+          v                                       v
+         PostgreSQL DB  Progress Tracker (Go + Redis)
 ```
 - **Microservices:** Isolated Go services for content, assessment, and progress.
 - **Event-Driven:** Kafka for decoupled, scalable communication.
@@ -100,18 +100,27 @@ ai-adaptive-learning/
 
 ### Quickstart
 
+#### Clone the repository
+```bash
+  git clone git@github.com:eduardosirangelo/go-angular-ai-adaptive-learning.git
 ```
-# Clone the repository
-git clone https://github.com/eduardosirangelo/ai-adaptive-learning.git
-cd ai-adaptive-learning
+```bash
+  cd go-angular-ai-adaptive-learning
+```
 
-# Start all services (dev mode)
-docker-compose up --build
-
-# Run Angular frontend
-cd web-app/mfe-dashboard
-npm install
-ng serve
+#### Start all services (dev mode)
+```bash
+  docker-compose up --build
+```
+#### Run Angular frontend
+```bash
+  cd web-app/mfe-dashboard
+```
+```bash
+  npm install
+```
+```bash
+  ng serve
 ```
 
 ---
