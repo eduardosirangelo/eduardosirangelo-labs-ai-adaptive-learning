@@ -57,7 +57,8 @@ ai-adaptive-learning/
 │   ├── assessment-api/      # Assessment logic & scoring (Go)
 │   └── progress-tracker/    # Real-time progress (Go + Redis)
 │
-├── web-app/
+├── ui/
+│   ├── web-app/             # Angular main host for micro frontend's
 │   └── mfe-dashboard/       # Angular micro frontend
 │
 ├── infrastructure/
@@ -66,7 +67,7 @@ ai-adaptive-learning/
 │
 ├── docs/
 │   ├── ARCHITECTURE.md      # Detailed diagrams & flows
-│   └── MCGRAW-HILL_INSIGHTS.md  # EdTech research & benchmarking
+│   └── STUDY-PLAN.md        # Study calendar
 │
 └── .github/
     └── workflows/           # CI/CD pipelines
