@@ -1,0 +1,5 @@
+port: "8070"
+database_url: "postgres://user:pass@localhost:5432/db"
+kafka_brokers:
+    - localhost:9092
+read_timeout: 10s

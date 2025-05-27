@@ -6,10 +6,21 @@ This microservice in Go is responsible for:
 - Integrating with the RAG/LLM mechanism to search and compose material.
 
 ## Structure
-- `cmd/` – application entry point
 
-- `internal/` – business logic and repositories
-- `pkg/` – reusable utilities and helpers
+```
+services/content-engine/
+├── cmd/
+│   └── content-engine/      # main.go and server initialization
+│
+├── internal/
+│   ├── domain/              # entity definitions (structs)
+│   ├── service/             # use cases / business rules
+│   └── repository/          # data access interface and implementation
+│
+├── pkg/                     # helpers or libs that can be exported
+│
+└── go.mod
+```
 
 ## How to run
 

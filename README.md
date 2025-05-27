@@ -27,11 +27,11 @@ AI Adaptive Learning Engine is a modern, microservices-based platform designed f
 ## 🏗️ Architecture
 
 ```
-                   +-------------------+
-                   |   Angular MFE     |
-                   +-------------------+
-                             |
-                             v
+                    +------------------+
+                    |   Angular MFE    |
+                    +------------------+
+                              |
+                              v
 +-------------------+    Kafka Events    +---------------------+
 |  Content Engine   |                    |  Assessment Engine  |
 |   (Go Service)    |                    |   (Go Service)      |
@@ -50,12 +50,37 @@ AI Adaptive Learning Engine is a modern, microservices-based platform designed f
 ## 📦 Repository Structure
 
 ```
-ai-adaptive-learning/
+ai-adaptive-learning/                  # monorepo root
+├── go.work                            # workspace linking all modules
+├── pkg/                               # shared utility libraries
+│   ├── config/                        # configuration loading (viper)
+│   ├── http/                          # generic HTTP server and middleware
+│   ├── auth/                          # JWT client and validation (Factory, Strategy)
+│   └── logging/                       # logger setup (zap/zerolog)
 │
-├── services/
-│   ├── content-engine/      # Adaptive content delivery (Go)
-│   ├── assessment-api/      # Assessment logic & scoring (Go)
-│   └── progress-tracker/    # Real-time progress (Go + Redis)
+├── services/                          # independent microservices
+│   ├── content-engine/                # Go module
+│   │   ├── cmd/content-engine/        # HTTP/gRPC bootstrap
+│   │   ├── internal/                  
+│   │   │   ├── api/                   # routing and handlers (Delivery)
+│   │   │   ├── domain/                # entities (Domain)
+│   │   │   ├── service/               # use cases (Use Cases)
+│   │   │   └── repository/            # interface + persistence implementation
+│   │   └── go.mod
+│   │ 
+│   ├── auth/                          # authorization server (OAuth2/OIDC)
+│   │   ├── cmd/auth/                  # REST/gRPC endpoints (/login, /refresh) 
+│   │   ├── internal/                      
+│   │   │   ├── token/                 # TokenManager (Strategy Pattern)
+│   │   │   ├── handler/               # Auth handlers (Template Method)
+│   │   │   └── jwks/                  # JWKS endpoint (Adapter Pattern)
+│   │   └── go.mod     
+│   │           
+│   ├── assessment-api/                
+│   │   └── (same layer structure)  
+│   │
+│   └── progress-tracker/              
+│       └── (same layer structure)  
 │
 ├── ui/
 │   ├── web-app/             # Angular main host for micro frontend's
