@@ -1,0 +1,73 @@
+# .gitignore para o AI Adaptive Learning Engine
+
+########################
+# Arquivos do Sistema  #
+########################
+.DS_Store
+Thumbs.db
+
+########################
+# IDE / Editor         #
+########################
+.idea/
+*.iml
+.vscode/
+*.swp
+*~
+
+########################
+# Node.js & Angular    #
+########################
+**/node_modules/
+**/ui/web-app/dist/
+**/ui/mfe-dashboard/dist/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+########################
+# Variáveis de Ambiente#
+########################
+.env
+.env.*.local
+
+########################
+# Go                  #
+########################
+# Binários e testes
+*.exe
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+
+# Módulos (se vendor estiver sendo usado)
+vendor/
+
+########################
+# Terraform            #
+########################
+infrastructure/terraform/.terraform/
+infrastructure/terraform/.terraform.lock.hcl
+*.tfstate
+*.tfstate.backup
+*.tfplan
+crash.log
+override.tf
+override.tf.json
+terraform.tfvars
+terraform.tfvars.json
+
+########################
+# Logs & Coverage      #
+########################
+logs/
+*.log
+coverage/
+coverage.out
+
+########################
+# Docker Compose       #
+########################
+docker-compose.override.yml
