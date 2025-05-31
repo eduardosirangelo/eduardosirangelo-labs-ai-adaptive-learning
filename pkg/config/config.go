@@ -3,6 +3,8 @@ package config
 import (
 	"errors"
 	"fmt"
+	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -10,41 +12,45 @@ import (
 )
 
 type Config struct {
-	Port             string        `mapstructure:"PORT"`
-	DatabaseURL      string        `mapstructure:"DATABASE_URL"`
-	KafkaBrokers     []string      `mapstructure:"KAFKA_BROKERS"`
-	ReadTimeout      time.Duration `mapstructure:"READ_TIMEOUT"`
-	RequestTimeout   time.Duration `mapstructure:"REQUEST_TIMEOUT"`
-	CORSOrigins      []string      `mapstructure:"CORS_ORIGINS"`      // e.g., ["https://example.com", "https://another.com"]
-	RateLimit        int           `mapstructure:"RATE_LIMIT"`        // max requests per IP
-	RateWindow       time.Duration `mapstructure:"RATE_WINDOW"`       // e.g., 1 minute
-	CompressionLevel int           `mapstructure:"COMPRESSION_LEVEL"` // gzip compression level (1-9)
+	Port             string        `mapstructure:"port"`
+	DatabaseURL      string        `mapstructure:"database_url"`
+	KafkaBrokers     []string      `mapstructure:"kafka_brokers"`
+	ReadTimeout      time.Duration `mapstructure:"read_timeout"`
+	RequestTimeout   time.Duration `mapstructure:"request_timeout"`
+	CORSOrigins      []string      `mapstructure:"cors_origins"`
+	RateLimit        int           `mapstructure:"rate_limit"`
+	RateWindow       time.Duration `mapstructure:"rate_window"`
+	CompressionLevel int           `mapstructure:"compression_level"`
 }
 
-func Load() (*Config, error) {
+func Load(serviceName string) (*Config, error) {
 	v := viper.New()
 
-	// 1) Configuration via YAML file//
-	// Search in ./config.yaml and ./config.{ENV}.yaml
-	v.SetConfigName("config") // base: config.yaml
-	v.SetConfigType("yaml")
-	v.AddConfigPath(".")                 // ./services/content-engine
-	v.AddConfigPath("./internal/config") // now includes the folder where config.yaml is located
+	wd, err := os.Getwd()
+	if err != nil {
+		return nil, err
+	}
 
+	// monta paths para services/<serviceName> e services/<serviceName>/config
+	svcDir := filepath.Join(wd, "services", serviceName)
+	v.AddConfigPath(svcDir)
+	v.AddConfigPath(filepath.Join(svcDir, "config"))
+	v.SetConfigName("config")
+	v.SetConfigType("yaml")
+
+	// Read config file (ignore if not found)
 	if err := v.ReadInConfig(); err != nil {
-		var notFoundErr viper.ConfigFileNotFoundError
-		if errors.As(err, &notFoundErr) {
-			// if no file is found, continue without error
-		} else {
+		var notFound viper.ConfigFileNotFoundError
+		if !errors.As(err, &notFound) {
 			return nil, fmt.Errorf("error reading config file: %w", err)
 		}
 	}
 
-	// 2) Environment variables
-	// reads any VAR in UPPERCASE format
+	// 2) Environment variables override
 	v.AutomaticEnv()
-
+	// Map ENV_VAR to nested keys: replace "." with "_"
 	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
+	// Bind expected env vars
 	for _, key := range []string{
 		"PORT",
 		"DATABASE_URL",
@@ -56,22 +62,19 @@ func Load() (*Config, error) {
 		"RATE_WINDOW",
 		"COMPRESSION_LEVEL",
 	} {
-		_ = v.BindEnv(key)
+		_ = v.BindEnv(strings.ToLower(key))
 	}
 
-	// 3) Default values (if not from the file or env)
-	// 3) Defaults para HTTP
-	v.SetDefault("PORT", "8070")
-	v.SetDefault("READ_TIMEOUT", 5*time.Second)
-	v.SetDefault("REQUEST_TIMEOUT", 10*time.Second)
+	// 3) Defaults
+	v.SetDefault("port", "8070")
+	v.SetDefault("read_timeout", 5*time.Second)
+	v.SetDefault("request_timeout", 10*time.Second)
+	v.SetDefault("cors_origins", []string{"*"})
+	v.SetDefault("rate_limit", 1000)
+	v.SetDefault("rate_window", 1*time.Minute)
+	v.SetDefault("compression_level", 5)
 
-	// HTTP-specific defaults:
-	v.SetDefault("CORS_ORIGINS", []string{"*"})       // permite todos por padrão
-	v.SetDefault("RATE_LIMIT", 1000)                  // 1000 req/IP
-	v.SetDefault("RATE_WINDOW", 1*time.Minute)        // janela de 1 minuto
-	v.SetDefault("COMPRESSION_LEVEL", 5)              // nível médio de gzip
-
-	// 4) Unmarshal
+	// 4) Unmarshal into struct
 	var cfg Config
 	if err := v.Unmarshal(&cfg); err != nil {
 		return nil, fmt.Errorf("unable to decode config: %w", err)

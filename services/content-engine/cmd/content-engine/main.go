@@ -12,7 +12,7 @@ import (
 
 func main() {
 	// 1) Load the configuration (port, timeouts, etc.)
-	cfg, err := config.Load()
+	cfg, err := config.Load("content-engine")
 	if err != nil {
 		log.Fatalf("failed to load config: %v", err)
 	}
