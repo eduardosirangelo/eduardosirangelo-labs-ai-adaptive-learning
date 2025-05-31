@@ -1,0 +1,12 @@
+go 1.23.0
+
+use (
+	./pkg/auth
+	./pkg/config
+	./pkg/http
+	./pkg/logging
+	./services/assessment-api
+	./services/auth
+	./services/content-engine
+	./services/progress-tracker
+)

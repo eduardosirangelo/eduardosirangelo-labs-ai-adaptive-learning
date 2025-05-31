@@ -1,0 +1,38 @@
+# services/content-engine/config.yaml
+# Runtime environment: development, staging, production
+env: "development"
+
+# Port where the service will listen
+port: "8071"
+
+# Port to expose Prometheus metrics (optional)
+metrics_port: "9091"
+
+# PostgreSQL database
+database_url: "postgres://user:pass@localhost:5432/contentdb"
+
+# Kafka brokers for events
+kafka_brokers:
+    - "localhost:9092"
+
+# JWKS endpoint for JWT validation
+jwks_url: "https://auth.adaptive-learning.com/.well-known/jwks.json"
+
+# Integration with LLM/RAG
+llm_api_url: "https://api.openai.com/v1/chat/completions"
+llm_api_key: "sk-..."
+
+# Timeouts
+read_timeout: 10s
+request_timeout: 10s
+shutdown_timeout: 15s
+
+# HTTP middleware
+cors_origins:
+    - "*"             # or domain lists: https://myapp.com
+rate_limit: 1000      # requests per IP
+rate_window: 1m       # 1-minute window
+compression_level: 5  # gzip (1-9)
+
+# Logging
+log_level: "INFO"
