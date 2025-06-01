@@ -17,7 +17,7 @@ COPY . .
 # - CGO\_ENABLED=0: sem dependências C, gera executável estático
 # - GOOS=linux: alvo Linux
 # - -trimpath: remove caminhos do sistema do binário
-RUN CGO\_ENABLED=0 GOOS=linux go build -trimpath -o progress-tracker ./cmd/progress-tracker
+RUN CGO_ENABLED=0 GOOS=linux go build -trimpath -o progress-tracker ./cmd/progress-tracker
 
 # Stage 2: Runtime minimalista
 FROM scratch
