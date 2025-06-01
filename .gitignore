@@ -71,3 +71,4 @@ coverage.out
 # Docker Compose       #
 ########################
 docker-compose.override.yml
+docker/volumes
