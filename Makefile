@@ -32,6 +32,7 @@ up: docker
 ## down: derruba o ambiente (docker-compose down)
 down: ## para e remove containers, redes e volumes anônimos
 	@echo "🛑  Stopping services..."
+	@echo $(DC)
 	@$(DC) down --remove-orphans
 
 ## logs: acompanha os logs de todos os serviços

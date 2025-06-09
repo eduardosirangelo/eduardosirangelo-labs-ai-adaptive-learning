@@ -7,8 +7,11 @@ services:
         environment:
             POSTGRES_USER: user
             POSTGRES_PASSWORD: pass
-            POSTGRES_DB: contentdb
+            POSTGRES_DB: appdb
+        ports:
+            - '5462:5432'
         volumes:
+            - ./docker/postgres/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
             - pg_data:/var/lib/postgresql/data
         networks:
             - backend
@@ -25,10 +28,12 @@ services:
         depends_on:
             - zookeeper
         environment:
-            KAFKA_BROKER_ID: 1
-            KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-            KAFKA_LISTENERS: PLAINTEXT://:9092
-            KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+            - KAFKA_CFG_NODE_ID=0
+            - KAFKA_CFG_PROCESS_ROLES=controller,broker
+            - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092,CONTROLLER://:9093
+            - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+            - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=0@kafka:9093
+            - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
         networks:
             - backend
     
@@ -39,62 +44,64 @@ services:
         networks:
             - backend
             
-#    auth-service:
-#        build:
-#            context: ./services/auth
-#        environment:
-#            - ENV=development
-#            - PORT=9000
-#            - METRICS_PORT=9091
-#            - DATABASE_URL=postgres://user:pass@postgres:5432/contentdb
-#            - KAFKA_BROKERS=kafka:9092
-#            - READ_TIMEOUT=10s
-#            - REQUEST_TIMEOUT=10s
-#            - SHUTDOWN_TIMEOUT=15s
-#            - CORS_ORIGINS=*
-#            - RATE_LIMIT=1000
-#            - RATE_WINDOW=1m
-#            - COMPRESSION_LEVEL=5
-#            - LOG_LEVEL=INFO
-#            - TLS_CERT_PATH=/etc/ssl/certs/tls.crt
-#            - TLS_KEY_PATH=/etc/ssl/private/tls.key
-#            - JWKS_URL=https://auth.adaptive-learning.com/.well-known/jwks.json
-#            - LLM_API_URL=https://api.openai.com/v1/chat/completions
-#            - LLM_API_KEY=${LLM_API_KEY}
-#        ports:
-#            - '9000:9000'
-#        networks:
-#            - backend
-#
-#    assessment-api:
-#        build:
-#            context: ./services/assessment-api
-#        environment:
-#            - ENV=development
-#            - PORT=8070
-#            - METRICS_PORT=9091
-#            - DATABASE_URL=postgres://user:pass@postgres:5432/contentdb
-#            - KAFKA_BROKERS=kafka:9092
-#            - READ_TIMEOUT=10s
-#            - REQUEST_TIMEOUT=10s
-#            - SHUTDOWN_TIMEOUT=15s
-#            - CORS_ORIGINS=*
-#            - RATE_LIMIT=1000
-#            - RATE_WINDOW=1m
-#            - COMPRESSION_LEVEL=5
-#            - LOG_LEVEL=INFO
-#            - TLS_CERT_PATH=/etc/ssl/certs/tls.crt
-#            - TLS_KEY_PATH=/etc/ssl/private/tls.key
-#            - JWKS_URL=https://auth.adaptive-learning.com/.well-known/jwks.json
-#            - LLM_API_URL=https://api.openai.com/v1/chat/completions
-#            - LLM_API_KEY=${LLM_API_KEY}
-#        ports:
-#            - '8090:8090'
-#        depends_on:
-#            - postgres
-#            - kafka
-#        networks:
-#            - backend
+    auth:
+        build:
+            context: ./services/auth
+            dockerfile: Dockerfile
+        environment:
+            - ENV=development
+            - PORT=9000
+            - METRICS_PORT=9091
+            - DATABASE_URL=postgres://user:pass@postgres:5432/contentdb
+            - KAFKA_BROKERS=kafka:9092
+            - READ_TIMEOUT=10s
+            - REQUEST_TIMEOUT=10s
+            - SHUTDOWN_TIMEOUT=15s
+            - CORS_ORIGINS=*
+            - RATE_LIMIT=1000
+            - RATE_WINDOW=1m
+            - COMPRESSION_LEVEL=5
+            - LOG_LEVEL=INFO
+            - TLS_CERT_PATH=/etc/ssl/certs/tls.crt
+            - TLS_KEY_PATH=/etc/ssl/private/tls.key
+            - JWKS_URL=https://auth.adaptive-learning.com/.well-known/jwks.json
+            - LLM_API_URL=https://api.openai.com/v1/chat/completions
+            - LLM_API_KEY=${LLM_API_KEY:-openai_api_key}
+        ports:
+            - '9000:9000'
+        networks:
+            - backend
+
+    assessment-api:
+        build:
+            context: ./services/assessment-api
+            dockerfile: Dockerfile
+        environment:
+            - ENV=development
+            - PORT=8070
+            - METRICS_PORT=9091
+            - DATABASE_URL=postgres://user:pass@postgres:5432/contentdb
+            - KAFKA_BROKERS=kafka:9092
+            - READ_TIMEOUT=10s
+            - REQUEST_TIMEOUT=10s
+            - SHUTDOWN_TIMEOUT=15s
+            - CORS_ORIGINS=*
+            - RATE_LIMIT=1000
+            - RATE_WINDOW=1m
+            - COMPRESSION_LEVEL=5
+            - LOG_LEVEL=INFO
+            - TLS_CERT_PATH=/etc/ssl/certs/tls.crt
+            - TLS_KEY_PATH=/etc/ssl/private/tls.key
+            - JWKS_URL=https://auth.adaptive-learning.com/.well-known/jwks.json
+            - LLM_API_URL=https://api.openai.com/v1/chat/completions
+            - LLM_API_KEY=${LLM_API_KEY:-openai_api_key}
+        ports:
+            - '8070:8070'
+        depends_on:
+            - postgres
+            - kafka
+        networks:
+            - backend
     
     content-engine:
         build:
@@ -118,7 +125,7 @@ services:
             - TLS_KEY_PATH=/etc/ssl/private/tls.key
             - JWKS_URL=https://auth.adaptive-learning.com/.well-known/jwks.json
             - LLM_API_URL=https://api.openai.com/v1/chat/completions
-            - LLM_API_KEY=${LLM_API_KEY}
+            - LLM_API_KEY=${LLM_API_KEY:-openai_api_key}
         
         ports:
             - '8071:8071'
@@ -129,35 +136,36 @@ services:
         networks:
             - backend
     
-#    progress-tracker:
-#        build:
-#            context: ./services/progress-tracker
-#        environment:
-#            - ENV=development
-#            - PORT=8072
-#            - METRICS_PORT=9091
-#            - DATABASE_URL=postgres://user:pass@postgres:5432/contentdb
-#            - KAFKA_BROKERS=kafka:9092
-#            - READ_TIMEOUT=10s
-#            - REQUEST_TIMEOUT=10s
-#            - SHUTDOWN_TIMEOUT=15s
-#            - CORS_ORIGINS=*
-#            - RATE_LIMIT=1000
-#            - RATE_WINDOW=1m
-#            - COMPRESSION_LEVEL=5
-#            - LOG_LEVEL=INFO
-#            - TLS_CERT_PATH=/etc/ssl/certs/tls.crt
-#            - TLS_KEY_PATH=/etc/ssl/private/tls.key
-#            - JWKS_URL=https://auth.adaptive-learning.com/.well-known/jwks.json
-#            - LLM_API_URL=https://api.openai.com/v1/chat/completions
-#            - LLM_API_KEY=${LLM_API_KEY}
-#        ports:
-#            - '8072:8072'
-#        depends_on:
-#            - postgres
-#            - redis
-#        networks:
-#            - backend
+    progress-tracker:
+        build:
+            context: ./services/progress-tracker
+            dockerfile: Dockerfile
+        environment:
+            - ENV=development
+            - PORT=8072
+            - METRICS_PORT=9091
+            - DATABASE_URL=postgres://user:pass@postgres:5432/contentdb
+            - KAFKA_BROKERS=kafka:9092
+            - READ_TIMEOUT=10s
+            - REQUEST_TIMEOUT=10s
+            - SHUTDOWN_TIMEOUT=15s
+            - CORS_ORIGINS=*
+            - RATE_LIMIT=1000
+            - RATE_WINDOW=1m
+            - COMPRESSION_LEVEL=5
+            - LOG_LEVEL=INFO
+            - TLS_CERT_PATH=/etc/ssl/certs/tls.crt
+            - TLS_KEY_PATH=/etc/ssl/private/tls.key
+            - JWKS_URL=https://auth.adaptive-learning.com/.well-known/jwks.json
+            - LLM_API_URL=https://api.openai.com/v1/chat/completions
+            - LLM_API_KEY=${LLM_API_KEY:-openai_api_key}
+        ports:
+            - '8072:8072'
+        depends_on:
+            - postgres
+            - redis
+        networks:
+            - backend
     
 #    web-app:
 #        build:
@@ -183,6 +191,11 @@ services:
 
 volumes:
     pg_data:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: ${PWD}/docker/volumes/postgres-data
 
 networks:
     backend:
